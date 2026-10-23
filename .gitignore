@@ -1,0 +1,41 @@
+node_modules/
+dist/
+release/
+.test-build/
+e2e/node_modules/
+
+
+# ==========================================
+# AI Agent & IDE Agent Directories
+# ==========================================
+.agent/
+.agents/
+.claude/
+.codex/
+.gemini/
+.goose/
+.kiro/
+.opencode/
+.sisyphus/
+.trunk/
+
+# ==========================================
+# AI Coding Tool Ignore Rules (Local configs)
+# ==========================================
+.cursorignore
+.aiignore
+
+# ==========================================
+# Generated Skills & Workspaces
+# ==========================================
+# Ignores skill execution workspaces, benchmarks, and dynamic evaluations
+.*/skills/
+*-workspace/
+/vally-experiment-results/
+.superpowers/
+results/
+
+
+# Note: Do NOT ignore 'skills-lock.json' or shared 'SKILL.md' files 
+# if your team requires reproducible versions across environments.
+skills-lock.json

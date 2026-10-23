@@ -1,0 +1,23 @@
+{
+  "name": "meet-gif-reactions",
+  "version": "0.1.0",
+  "description": "Chrome extension: react in Google Meet by briefly replacing your video tile with a gif.",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.test.json",
+    "build": "node scripts/build.mjs",
+    "test": "node scripts/test.mjs",
+    "check": "npm run typecheck && npm run audit && npm test && npm run build",
+    "package": "npm run build && node scripts/package.mjs",
+    "audit": "node scripts/audit.mjs",
+    "e2e": "cd e2e && npm install && node run.mjs && node popup-test.mjs"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.3.5",
+    "@types/node": "^22.20.5",
+    "esbuild": "^0.28.2",
+    "typescript": "^7.0.2"
+  }
+}

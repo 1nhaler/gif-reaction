@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Meet GIF Reactions</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Meet GIF Reactions</h1>
+        <span id="room" class="chip" hidden></span>
+      </header>
+
+      <label for="url">Giphy link</label>
+      <input id="url" type="text" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://giphy.com/gifs/..." />
+
+      <div class="preview" aria-live="polite">
+        <img id="preview-img" alt="Preview of the pasted gif" hidden />
+        <p id="preview-msg" class="hint">Paste a Giphy link to preview it.</p>
+      </div>
+
+      <div class="row">
+        <label for="fit">Fit</label>
+        <select id="fit">
+          <option value="fill">Fill (crop to cover)</option>
+          <option value="fit">Fit (keep whole gif)</option>
+          <option value="stretch">Stretch</option>
+        </select>
+      </div>
+
+      <details>
+        <summary>Settings</summary>
+        <div class="row">
+          <label for="hold">Start hold (ms)</label>
+          <input id="hold" type="number" min="0" max="3000" step="50" value="0" />
+        </div>
+        <p class="hint">Shows the first frame still for this long before the gif starts moving, so viewers do not miss the beginning. 0 turns it off.</p>
+      </details>
+
+      <button id="go" type="button" disabled>Go</button>
+      <p id="status" class="status" role="status"></p>
+    </main>
+    <script src="popup.js"></script>
+  </body>
+</html>

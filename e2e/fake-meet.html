@@ -1,0 +1,111 @@
+<!doctype html>
+<html>
+  <head><meta charset="utf-8"><title>Fake Meet</title></head>
+  <body style="margin:0;background:#222">
+    <video id="self" autoplay muted playsinline width="320" height="180"></video>
+    <button id="cam" aria-label="Turn on camera (ctrl + e)" data-is-muted="true">cam</button>
+    <script>
+      // A stand-in for Meet: a camera toggle (button and Ctrl+E) that requests and stops the camera.
+      const selfView = document.getElementById('self');
+      const cam = document.getElementById('cam');
+      let stream = null;
+      let track = null;
+      window.__audio = null;
+      window.__log = [];
+      window.__tracks = [];
+
+      function setUi(on) {
+        cam.dataset.isMuted = on ? 'false' : 'true';
+        cam.setAttribute('aria-label', (on ? 'Turn off camera' : 'Turn on camera') + ' (ctrl + e)');
+      }
+      async function cameraOn() {
+        const s = await navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 640 }, height: { ideal: 360 } } });
+        stream = s;
+        track = s.getVideoTracks()[0];
+        window.__tracks.push(track);
+        selfView.srcObject = s;
+        await selfView.play();
+        setUi(true);
+      }
+      function cameraOff() {
+        track.stop();
+        stream = null;
+        track = null;
+        selfView.srcObject = null;
+        setUi(false);
+      }
+      async function toggle() {
+        if (track) cameraOff();
+        else await cameraOn();
+      }
+      document.addEventListener('keydown', (e) => {
+        if (e.ctrlKey && e.key === 'e') {
+          e.preventDefault();
+          window.__log.push('key');
+          toggle();
+        }
+      });
+      cam.addEventListener('click', () => {
+        window.__log.push('click');
+        toggle();
+      });
+      // The user pressing Meet's own camera button.
+      window.__userToggle = () => toggle();
+      window.__hasCamera = () => track !== null;
+      // Join a call: audio always, camera optionally. Audio comes in the same request, as Meet does at join.
+      window.__join = async (withCamera) => {
+        const s = await navigator.mediaDevices.getUserMedia(
+          withCamera ? { audio: true, video: { width: { ideal: 640 }, height: { ideal: 360 } } } : { audio: true },
+        );
+        window.__audio = s.getAudioTracks()[0] || null;
+        if (withCamera) {
+          stream = s;
+          track = s.getVideoTracks()[0];
+          window.__tracks.push(track);
+          selfView.srcObject = s;
+          await selfView.play();
+          setUi(true);
+        }
+      };
+      window.__sample = () => {
+        if (!selfView.srcObject || selfView.videoWidth === 0) return null;
+        const c = document.createElement('canvas');
+        c.width = 32; c.height = 18;
+        const ctx = c.getContext('2d', { willReadFrequently: true });
+        ctx.drawImage(selfView, 0, 0, 32, 18);
+        const px = (x, y) => Array.from(ctx.getImageData(x, y, 1, 1).data.slice(0, 3));
+        return { center: px(16, 9), corner: px(1, 1), size: [selfView.videoWidth, selfView.videoHeight] };
+      };
+
+      // Stand-in for the extension's bridge: completes the handshake and relays commands.
+      // (Skipped when the real bridge is injected instead.)
+      if (!window.__realBridge) {
+        let port = null;
+        let nextId = 1;
+        const waiting = new Map();
+        window.addEventListener('message', (e) => {
+          if (port || e.source !== window || !e.data || e.data.__mgr !== 'hook-ready') return;
+          const ch = new MessageChannel();
+          port = ch.port1;
+          port.onmessage = (ev) => { waiting.get(ev.data.id)?.(ev.data); waiting.delete(ev.data.id); };
+          port.start();
+          window.postMessage({ __mgr: 'port' }, location.origin, [ch.port2]);
+        });
+        window.postMessage({ __mgr: 'bridge-ready' }, location.origin);
+        window.__connected = () => port !== null;
+        window.__send = (req, gifBytes) => new Promise((resolve) => {
+          const id = nextId++;
+          waiting.set(id, resolve);
+          const msg = { id, ...req };
+          if (gifBytes) {
+            const buf = new Uint8Array(gifBytes).buffer;
+            msg.gif = buf;
+            port.postMessage(msg, [buf]);
+          } else {
+            port.postMessage(msg);
+          }
+        });
+      }
+    </script>
+  </body>
+</html>

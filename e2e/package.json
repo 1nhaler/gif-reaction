@@ -1,0 +1,13 @@
+{
+  "name": "meet-gif-reactions-e2e",
+  "private": true,
+  "type": "module",
+  "description": "Runs the built page hook in a real Chromium with a fake camera, against a stand-in for Meet.",
+  "scripts": {
+    "test": "node run.mjs"
+  },
+  "dependencies": {
+    "@sparticuz/chromium": "^153.0.0",
+    "puppeteer-core": "^25.13.0"
+  }
+}
