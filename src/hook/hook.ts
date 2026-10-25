@@ -4,10 +4,10 @@
  * what is drawn into it. It never touches audio or screen sharing.
  */
 import { pickSyntheticSize, wantsAudio, wantsVideo } from '../shared/constraints';
-import { type HookReply, type HookRequest, type TabStatus, parseHookRequest } from '../shared/protocol';
+import { type DiagSnapshot, type HookReply, type HookRequest, type TabStatus, parseHookRequest } from '../shared/protocol';
 import { ReactionController, type ReactionEnv } from '../shared/reaction';
 import { parseRoomCode } from '../shared/room';
-import { cameraUiState, clickCameraButton, pressCameraShortcut } from './camera-ui';
+import { cameraUiState, clickCameraButton, findCameraButton, pressCameraShortcut } from './camera-ui';
 import { makeSyntheticStream, wrapCameraStream } from './compositor';
 import { GifPlayer } from './gif-player';
 import { LiveTracks } from './tracks';
@@ -24,6 +24,14 @@ function install(): void {
     typeof MediaStreamTrackGenerator !== 'undefined' &&
     typeof MediaDevices !== 'undefined' &&
     GifPlayer.isSupported();
+
+  // shortcut: cameraButtonFound is null until DOM is ready; resolved on first status() call.
+  // When to upgrade: if Meet ever sets up its button after a user interaction rather than page load.
+  let diagCameraButton: boolean | null = null;
+  const diag = (): DiagSnapshot => ({
+    webCodecsOk: supported,
+    cameraButtonFound: (diagCameraButton ??= findCameraButton() !== null),
+  });
 
   const player = new GifPlayer();
   /** Counts camera-related events so a click fallback never doubles up on a toggle that worked. */
@@ -110,6 +118,7 @@ function install(): void {
       phase: s.phase,
       cameraOn: tracks.count() > 0,
       error: s.error,
+      diag: diag(),
     };
   };
 

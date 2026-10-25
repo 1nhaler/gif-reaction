@@ -20,23 +20,37 @@
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
-  "permissions": ["storage"],
-  "host_permissions": ["https://meet.google.com/*", "https://*.giphy.com/*"],
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "https://meet.google.com/*",
+    "https://tenor.com/*",
+    "https://*.giphy.com/*"
+  ],
   "content_scripts": [
     {
-      "matches": ["https://meet.google.com/*"],
-      "js": ["hook.js"],
+      "matches": [
+        "https://meet.google.com/*"
+      ],
+      "js": [
+        "hook.js"
+      ],
       "run_at": "document_start",
       "world": "MAIN"
     },
     {
-      "matches": ["https://meet.google.com/*"],
-      "js": ["bridge.js"],
+      "matches": [
+        "https://meet.google.com/*"
+      ],
+      "js": [
+        "bridge.js"
+      ],
       "run_at": "document_start",
       "world": "ISOLATED"
     }
   ],
   "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'; base-uri 'none'; form-action 'none'; style-src 'self'; img-src 'self' blob:; connect-src https://*.giphy.com"
+    "extension_pages": "script-src 'self'; object-src 'self'; base-uri 'none'; form-action 'none'; style-src 'self'; img-src 'self' blob:; connect-src https://*.giphy.com https://tenor.com https://*.tenor.com"
   }
 }

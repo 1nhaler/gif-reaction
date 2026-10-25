@@ -65,7 +65,7 @@ window.postMessage({ __mgr: 'bridge-ready' }, location.origin);
 // ---- relaying --------------------------------------------------------------
 
 function offlineStatus(): TabStatus {
-  return { hookReady: false, supported: false, room: parseRoomCode(location.href), phase: 'idle', cameraOn: false, error: null };
+  return { hookReady: false, supported: false, room: parseRoomCode(location.href), phase: 'idle', cameraOn: false, error: null, diag: null };
 }
 
 function send(request: HookRequest, transfer: Transferable[] = []): Promise<HookReply | null> {
