@@ -5,6 +5,17 @@ import { isRoomCode } from './room';
 
 export type Phase = 'idle' | 'starting' | 'holding' | 'playing' | 'ending';
 
+/**
+ * One-time diagnostic snapshot taken at hook install (document_start).
+ * All fields are set once and never change for the lifetime of the tab.
+ */
+export interface DiagSnapshot {
+  /** MediaStreamTrackProcessor + MediaStreamTrackGenerator present. */
+  webCodecsOk: boolean;
+  /** Meet's camera button was found via the shortcut-hint regex at DOM-ready. */
+  cameraButtonFound: boolean;
+}
+
 /** What the page hook reports about itself. */
 export interface TabStatus {
   /** The bridge could reach the page hook. */
@@ -15,6 +26,8 @@ export interface TabStatus {
   phase: Phase;
   cameraOn: boolean;
   error: string | null;
+  /** Populated after hook install; null when the bridge is offline. */
+  diag: DiagSnapshot | null;
 }
 
 export type PopupRequest =
@@ -91,11 +104,15 @@ const PHASES: readonly Phase[] = ['idle', 'starting', 'holding', 'playing', 'end
 /** Validates a status object that crossed a boundary before the popup displays it. */
 export function parseTabStatus(raw: unknown): TabStatus | null {
   if (!isRecord(raw)) return null;
-  const { hookReady, supported, room, phase, cameraOn, error } = raw;
+  const { hookReady, supported, room, phase, cameraOn, error, diag } = raw;
   if (typeof hookReady !== 'boolean' || typeof supported !== 'boolean' || typeof cameraOn !== 'boolean') return null;
   if (typeof phase !== 'string' || !PHASES.includes(phase as Phase)) return null;
   if (room !== null && !isRoomCode(room)) return null;
   if (error !== null && typeof error !== 'string') return null;
+  let parsedDiag: DiagSnapshot | null = null;
+  if (isRecord(diag) && typeof diag['webCodecsOk'] === 'boolean' && typeof diag['cameraButtonFound'] === 'boolean') {
+    parsedDiag = { webCodecsOk: diag['webCodecsOk'], cameraButtonFound: diag['cameraButtonFound'] };
+  }
   return {
     hookReady,
     supported,
@@ -103,6 +120,7 @@ export function parseTabStatus(raw: unknown): TabStatus | null {
     phase: phase as Phase,
     cameraOn,
     error: error === null ? null : error.slice(0, 300),
+    diag: parsedDiag,
   };
 }
 

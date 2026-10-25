@@ -28,6 +28,7 @@ const holdInput = el<HTMLInputElement>('hold');
 const goButton = el<HTMLButtonElement>('go');
 const statusLine = el<HTMLParagraphElement>('status');
 const roomChip = el<HTMLSpanElement>('room');
+const diagList = el<HTMLUListElement>('diag');
 
 interface LoadedGif {
   id: string;
@@ -169,9 +170,50 @@ function setButton(label: string, enabled: boolean, stop = false): void {
   goButton.classList.toggle('stop', stop);
 }
 
+type DiagOk = 'true' | 'warn' | 'false';
+function diagItem(ok: DiagOk, label: string): HTMLLIElement {
+  const li = document.createElement('li');
+  li.dataset['ok'] = ok;
+  li.textContent = label;
+  return li;
+}
+
+/** Returns true when a critical check failed (should block Go). */
+function renderDiag(s: TabStatus | null): boolean {
+  diagList.innerHTML = '';
+
+  // Only show the panel when the hook is reachable and has a diag snapshot.
+  if (!s?.hookReady || !s.diag) {
+    diagList.hidden = true;
+    return false;
+  }
+
+  const { webCodecsOk, cameraButtonFound } = s.diag;
+  const criticalFail = !webCodecsOk;
+
+  // (We only flag it if cameraButtonFound so the user knows the button exists.)
+  const cameraWarn = !cameraButtonFound;
+
+  const items: HTMLLIElement[] = [
+    diagItem(s.hookReady ? 'true' : 'false', 'Hook installed & reachable'),
+    diagItem(webCodecsOk ? 'true' : 'false', 'WebCodecs API available'),
+    diagItem(cameraButtonFound ? 'true' : 'warn',
+      cameraButtonFound ? 'Camera shortcut recognized' : 'Camera button not found — shortcut may not work'),
+  ];
+
+  const allGreen = !criticalFail && !cameraWarn;
+  diagList.hidden = allGreen;
+  if (!allGreen) {
+    for (const item of items) diagList.appendChild(item);
+  }
+  return criticalFail;
+}
+
 function render(): void {
   roomChip.hidden = tab === null;
   if (tab) roomChip.textContent = tab.room;
+
+  const criticalFail = renderDiag(status ?? null);
 
   if (!tab) {
     setButton('Go', false);
@@ -186,6 +228,11 @@ function render(): void {
   if (!status.supported) {
     setButton('Go', false);
     setStatus('This browser is missing features the extension needs. Use a current version of Chrome.', true);
+    return;
+  }
+  if (criticalFail) {
+    setButton('Go', false);
+    setStatus('Extension cannot be used — please wait for an update or try again later.', true);
     return;
   }
 
