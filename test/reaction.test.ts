@@ -67,7 +67,7 @@ describe('camera on: gif replaces the picture, then the camera returns', () => {
     assert.deepEqual(c.frame(), { kind: 'gif', elapsedMs: 0 });
     env.advance(500);
     assert.deepEqual(c.frame(), { kind: 'gif', elapsedMs: 500 });
-    env.advance(1500);
+    env.advance(4500);
     assert.deepEqual(c.frame(), { kind: 'idle' });
     assert.equal(c.snapshot().phase, 'idle');
     assert.equal(env.toggles, 0);
@@ -83,10 +83,10 @@ describe('camera on: gif replaces the picture, then the camera returns', () => {
     assert.equal(c.frame().kind, 'idle');
   });
 
-  it('a short gif plays once and ends early', async () => {
+  it('a short gif loops until the 5 second cap', async () => {
     env.gifMs = 800;
     await c.start({ gif: GIF, startHoldMs: 0 });
-    env.advance(799);
+    env.advance(4999);
     assert.equal(c.frame().kind, 'gif');
     env.advance(2);
     assert.equal(c.frame().kind, 'idle');
@@ -134,7 +134,7 @@ describe('camera on: gif replaces the picture, then the camera returns', () => {
 
   it('can start again after one ends', async () => {
     await c.start({ gif: GIF, startHoldMs: 0 });
-    env.advance(2500);
+    env.advance(5500);
     assert.equal(c.snapshot().phase, 'idle');
     assert.deepEqual(await c.start({ gif: GIF, startHoldMs: 0 }), { ok: true });
   });
@@ -172,11 +172,11 @@ describe('camera off: switch it on for the gif, then off again, never the real c
     assert.equal(c.snapshot().phase, 'playing');
     assert.equal(c.frame().kind, 'gif');
 
-    env.advance(2100);
+    env.advance(5100);
     assert.equal(c.snapshot().phase, 'ending');
     assert.equal(env.toggles, 2, 'camera is switched off again when the gif ends');
     // While the camera shuts off, the last frame stays up rather than a flash of anything else.
-    assert.deepEqual(c.frame(), { kind: 'gif', elapsedMs: 2000 });
+    assert.deepEqual(c.frame(), { kind: 'gif', elapsedMs: 4999 });
 
     env.cameraOn = false;
     c.onCameraOff();
@@ -257,7 +257,7 @@ describe('camera off: switch it on for the gif, then off again, never the real c
     await c.start({ gif: GIF, startHoldMs: 0 });
     env.cameraOn = true;
     c.onCameraOn();
-    env.advance(2100);
+    env.advance(5100);
     assert.equal(c.snapshot().phase, 'ending');
     env.advance(6100);
     const s = c.snapshot();

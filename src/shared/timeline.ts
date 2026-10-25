@@ -25,16 +25,17 @@ export function buildTimeline(durationsMs: ReadonlyArray<number | null | undefin
   return { ends, totalMs: total };
 }
 
-/** Index of the frame that is on screen `elapsedMs` after playback started. */
+/** Index of the frame that is on screen `elapsedMs` after playback started. Loops when elapsedMs exceeds total duration. */
 export function frameIndexAt(timeline: Timeline, elapsedMs: number): number {
-  const { ends } = timeline;
+  const { ends, totalMs } = timeline;
   if (ends.length === 0) return 0;
   if (!(elapsedMs > 0)) return 0;
+  const t = totalMs > 0 ? elapsedMs % totalMs : 0;
   let lo = 0;
   let hi = ends.length - 1;
   while (lo < hi) {
     const mid = (lo + hi) >> 1;
-    if (elapsedMs < ends[mid]!) hi = mid;
+    if (t < ends[mid]!) hi = mid;
     else lo = mid + 1;
   }
   return lo;

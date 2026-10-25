@@ -119,7 +119,7 @@ export class ReactionController {
       case 'playing':
         return { kind: 'gif', elapsedMs: Math.min(this.playMs, Math.max(0, now - this.playStart)) };
       case 'toggling-off':
-        return this.origin === 'off' && this.playMs > 0 ? { kind: 'gif', elapsedMs: this.playMs } : { kind: 'idle' };
+        return this.origin === 'off' && this.playMs > 0 ? { kind: 'gif', elapsedMs: Math.max(0, this.playMs - 1) } : { kind: 'idle' };
       default:
         return { kind: 'idle' };
     }
@@ -151,7 +151,7 @@ export class ReactionController {
       return { ok: false, error: 'That gif has no frames.' };
     }
 
-    this.playMs = Math.min(prepared.durationMs, this.capMs);
+    this.playMs = this.capMs;
     this.startHoldMs = Math.max(0, Math.min(MAX_START_HOLD_MS, Math.round(req.startHoldMs)));
 
     if (this.env.isCameraOn()) {

@@ -58,7 +58,9 @@ describe('timeline', () => {
     assert.equal(frameIndexAt(t, 100), 1);
     assert.equal(frameIndexAt(t, 299), 1);
     assert.equal(frameIndexAt(t, 300), 2);
-    assert.equal(frameIndexAt(t, 5000), 2);
+    assert.equal(frameIndexAt(t, 399), 2);
+    assert.equal(frameIndexAt(t, 400), 0);
+    assert.equal(frameIndexAt(t, 5000), 1);
     assert.equal(frameIndexAt(t, -5), 0);
   });
   it('handles an empty timeline', () => {
