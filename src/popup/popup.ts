@@ -1,7 +1,7 @@
 import { bytesToBase64 } from '../shared/base64';
 import { GifFetchError, fetchGif } from '../shared/fetch-gif';
 import { type FitMode, isFitMode } from '../shared/fit';
-import { parseGiphyInput } from '../shared/giphy';
+import { parseGifInput } from '../shared/gif-source';
 import { type PopupRequest, type TabReply, type TabStatus, parseTabReply } from '../shared/protocol';
 import { parseRoomCode } from '../shared/room';
 import {
@@ -86,11 +86,11 @@ async function loadPreview(text: string): Promise<void> {
   clearGif();
 
   if (text.trim() === '') {
-    showPreview('hint', 'Paste a Giphy link to preview it.');
+    showPreview('hint', 'Paste a GIF link to preview it.');
     render();
     return;
   }
-  const parsed = parseGiphyInput(text);
+  const parsed = parseGifInput(text);
   if (!parsed.ok) {
     showPreview('error', parsed.message);
     render();
@@ -102,7 +102,13 @@ async function loadPreview(text: string): Promise<void> {
   showPreview('hint', 'Loading preview...');
   render();
   try {
-    const fetched = await fetchGif(parsed.mediaUrls, { fetch: window.fetch.bind(window), signal: abort.signal });
+    let mediaUrls = parsed.mediaUrls;
+    if (mediaUrls.length === 0 && parsed.resolve) {
+      showPreview('hint', 'Resolving link...');
+      mediaUrls = await parsed.resolve(abort.signal);
+      if (abort.signal.aborted) return;
+    }
+    const fetched = await fetchGif(mediaUrls, { fetch: window.fetch.bind(window), signal: abort.signal });
     if (abort.signal.aborted) return;
     const blobUrl = URL.createObjectURL(new Blob([fetched.bytes], { type: 'image/gif' }));
     gif = { id: parsed.id, bytes: fetched.bytes, blobUrl, url: text.trim() };
@@ -180,7 +186,7 @@ function diagItem(ok: DiagOk, label: string): HTMLLIElement {
 
 /** Returns true when a critical check failed (should block Go). */
 function renderDiag(s: TabStatus | null): boolean {
-  diagList.innerHTML = '';
+  diagList.replaceChildren();
 
   // Only show the panel when the hook is reachable and has a diag snapshot.
   if (!s?.hookReady || !s.diag) {
@@ -241,7 +247,7 @@ function render(): void {
       setButton(sending ? 'Starting...' : 'Go', gif !== null && !sending);
       if (status.error) setStatus(status.error, true);
       else if (feedback) setStatus(feedback.text, feedback.error);
-      else setStatus(gif ? '' : 'Paste a Giphy link above.');
+      else setStatus(gif ? '' : 'Paste a GIF link above.');
       break;
     case 'starting':
       setButton('Stop', true, true);
