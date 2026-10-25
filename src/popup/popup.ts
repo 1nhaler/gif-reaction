@@ -86,7 +86,7 @@ async function loadPreview(text: string): Promise<void> {
   clearGif();
 
   if (text.trim() === '') {
-    showPreview('hint', 'Paste a GIF link to preview it.');
+    showPreview('hint', 'Paste a GIF(Giphy/Tenor) link to preview it.');
     render();
     return;
   }
