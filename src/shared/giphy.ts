@@ -1,4 +1,5 @@
 import { MAX_INPUT_LENGTH } from './constants';
+import type { GifParseResult, GifSource } from './gif-source';
 
 /**
  * Strict Giphy link handling.
@@ -145,4 +146,22 @@ export function isAllowedMediaUrl(text: string): boolean {
 /** Validates an ID read back from storage or a message. */
 export function isValidGifId(value: unknown): value is string {
   return typeof value === 'string' && ID_RE.test(value);
+}
+
+export class GiphySource implements GifSource {
+  readonly name = 'giphy';
+
+  canHandle(url: URL): boolean {
+    return PAGE_HOSTS.has(url.hostname) || MEDIA_HOST_RE.test(url.hostname) || url.hostname === IMAGE_HOST;
+  }
+
+  parse(_url: URL, rawText: string): GifParseResult {
+    return parseGiphyInput(rawText);
+  }
+
+  isAllowedMediaUrl(url: URL): boolean {
+    if (url.search !== '' || url.hash !== '') return false;
+    if (!(MEDIA_HOST_RE.test(url.hostname) || url.hostname === IMAGE_HOST)) return false;
+    return MEDIA_PATH_RE.test(url.pathname) || (url.hostname === IMAGE_HOST && IMAGE_PATH_RE.test(url.pathname));
+  }
 }

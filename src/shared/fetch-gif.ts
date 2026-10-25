@@ -1,5 +1,5 @@
 import { FETCH_TIMEOUT_MS, MAX_GIF_BYTES } from './constants';
-import { isAllowedMediaUrl } from './giphy';
+import { isAllowedMediaUrl } from './gif-source';
 
 export type FetchErrorCode =
   | 'blocked-url'
@@ -104,7 +104,7 @@ async function fetchOne(url: string, deps: FetchDeps): Promise<FetchedGif> {
     }
     if (!res.ok) {
       await res.body?.cancel().catch(() => undefined);
-      throw new GifFetchError('http-error', `Giphy answered with status ${res.status}.`);
+      throw new GifFetchError('http-error', `The server answered with status ${res.status}.`);
     }
     const type = (res.headers.get('content-type') ?? '').toLowerCase();
     if (!/^image\/gif(?:;|$)/.test(type)) {
@@ -149,7 +149,7 @@ export async function fetchGif(urls: string[], deps: FetchDeps): Promise<Fetched
     }
   }
   if (last instanceof GifFetchError && last.code === 'http-error') {
-    throw new GifFetchError('http-error', 'Giphy has no downloadable gif for that link.');
+    throw new GifFetchError('http-error', 'The server has no downloadable gif for that link.');
   }
   throw last;
 }

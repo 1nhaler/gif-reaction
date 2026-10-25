@@ -1,6 +1,6 @@
 import { DEFAULT_START_HOLD_MS, MAX_START_HOLD_MS, MAX_STORED_GIFS } from './constants';
 import { type FitMode, isFitMode } from './fit';
-import { isValidGifId, parseGiphyInput } from './giphy';
+import { isValidGifId, parseGifInput } from './gif-source';
 
 /**
  * Everything lives in chrome.storage.local, so it never leaves this browser.
@@ -49,7 +49,7 @@ export function sanitizeStoredState(raw: unknown): StoredState {
   }
 
   const lastUrl = raw['lastUrl'];
-  if (typeof lastUrl === 'string' && parseGiphyInput(lastUrl).ok) out.lastUrl = lastUrl.trim();
+  if (typeof lastUrl === 'string' && parseGifInput(lastUrl).ok) out.lastUrl = lastUrl.trim();
 
   const gifs = raw['gifs'];
   if (isRecord(gifs)) {

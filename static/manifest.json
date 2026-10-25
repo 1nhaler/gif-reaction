@@ -26,6 +26,7 @@
   "host_permissions": [
     "https://meet.google.com/*",
     "https://tenor.com/*",
+    "https://*.tenor.com/*",
     "https://*.giphy.com/*"
   ],
   "content_scripts": [
